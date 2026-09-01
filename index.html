@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ReviewLens — IMDB Sentiment Analyzer</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">ReviewLens</div>
+    <div class="nav-links">
+      <a href="#home">Home</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#analyze">Live Analysis</a>
+      <a href="#samples">Samples</a>
+      <a href="#model-info">Model Info</a>
+    </div>
+  </nav>
+
+  <!-- HOME -->
+  <section id="home" class="section hero">
+    <h1>ReviewLens</h1>
+    <p class="subtitle">A Logistic Regression model that reads a movie review and tells you,
+      in plain terms, whether the writer liked the film or not.</p>
+    <p class="description">Trained on 50,000 IMDB reviews using TF-IDF text features,
+      ReviewLens turns raw opinions into a clear Positive or Negative call — instantly.</p>
+    <a href="#analyze" class="cta-button">Try it on a review ↓</a>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how-it-works" class="section">
+    <div class="section-header">
+      <h2>How ReviewLens Decodes Sentiment</h2>
+      <p class="section-subtitle">Step inside the AI engine to see how raw human language is transformed into mathematical emotion scores.</p>
+    </div>
+
+    <!-- Interactive Stepper Track -->
+    <div class="interactive-pipeline">
+      <div class="pipeline-track">
+        <button class="pipeline-node active" data-step="1">
+          <span class="step-num">01</span>
+          <span class="step-icon">🧹</span>
+          <span class="step-title">Text Sanitization</span>
+        </button>
+        <div class="track-connector"></div>
+        <button class="pipeline-node" data-step="2">
+          <span class="step-num">02</span>
+          <span class="step-icon">📊</span>
+          <span class="step-title">TF-IDF Vectorization</span>
+        </button>
+        <div class="track-connector"></div>
+        <button class="pipeline-node" data-step="3">
+          <span class="step-num">03</span>
+          <span class="step-icon">⚖️</span>
+          <span class="step-title">Logistic Decision</span>
+        </button>
+        <div class="track-connector"></div>
+        <button class="pipeline-node" data-step="4">
+          <span class="step-num">04</span>
+          <span class="step-icon">🎯</span>
+          <span class="step-title">Confidence Output</span>
+        </button>
+      </div>
+
+      <!-- Live Interactive Sandbox Input -->
+      <div class="sandbox-input-box">
+        <label for="demo-input" class="sandbox-label">💡 Test Custom Text Live in Inspector:</label>
+        <input type="text" id="demo-input" value="<p>An absolute masterpiece! Stunning visuals & brilliant acting.</p>" placeholder="Type any review snippet to test live pipeline..." />
+      </div>
+
+      <!-- Active Step Detail & Live X-Ray Inspector -->
+      <div class="pipeline-display">
+        <div class="step-detail-card" id="step-detail">
+          <!-- Content dynamically rendered via script.js -->
+        </div>
+
+        <div class="xray-preview">
+          <div class="xray-header">
+            <span class="xray-dot red"></span>
+            <span class="xray-dot yellow"></span>
+            <span class="xray-dot green"></span>
+            <span class="xray-title">Live Pipeline Visualizer</span>
+          </div>
+          <div class="xray-body" id="xray-content">
+            <!-- Dynamic interactive visual demo rendered via script.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Mathematical Theory & ML Deep-Dive Card -->
+      <div class="theory-card" id="theory-card">
+        <!-- Math & ML Theory content dynamically updated via script.js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVE SENTIMENT ANALYSIS -->
+  <section id="analyze" class="section analyze">
+    <h2>Live Sentiment Analysis</h2>
+    <p class="section-note">Every review typed here is sent to the real trained model — nothing here is faked.</p>
+
+    <textarea id="review-input" placeholder="Write or paste any review..." rows="6"></textarea>
+    <button id="analyze-btn">Analyze Sentiment</button>
+
+    <div id="result-card" class="result-card hidden">
+      <div id="result-label" class="result-label"></div>
+      <div id="result-confidence" class="result-confidence"></div>
+    </div>
+    <div id="error-message" class="error-message hidden"></div>
+  </section>
+
+  <!-- SAMPLE REVIEWS -->
+  <section id="samples" class="section">
+    <h2>Sample Reviews</h2>
+    <p class="section-note">Click any card to load it into the analyzer above.</p>
+    <div class="samples-grid">
+      <button class="sample-card" data-review="This movie was amazing and I really enjoyed it! The acting, the story, everything was perfect.">
+        "This movie was amazing and I really enjoyed it! The acting, the story, everything was perfect."
+      </button>
+      <button class="sample-card" data-review="What a complete waste of time. The plot made no sense and the acting was painfully bad.">
+        "What a complete waste of time. The plot made no sense and the acting was painfully bad."
+      </button>
+      <button class="sample-card" data-review="A decent film with a slow start, but the ending really pulled everything together nicely.">
+        "A decent film with a slow start, but the ending really pulled everything together nicely."
+      </button>
+    </div>
+  </section>
+
+  <!-- MODEL INFORMATION -->
+  <section id="model-info" class="section model-info">
+    <h2>Model Information</h2>
+    <div class="info-grid">
+      <div class="info-item">
+        <span class="info-label">Dataset</span>
+        <span class="info-value">IMDB Reviews (50,000 labeled reviews)</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Model</span>
+        <span class="info-value">Logistic Regression</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Features</span>
+        <span class="info-value">TF-IDF (max 5,000 features)</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Classes</span>
+        <span class="info-value">Positive / Negative</span>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>ReviewLens — powered by your trained scikit-learn model, served through a local Flask API.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
