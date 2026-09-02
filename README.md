@@ -1,130 +1,92 @@
-# ReviewLens — IMDB Sentiment Analyzer
+# ReviewLens
 
-ReviewLens reads a movie review and tells you whether it's Positive or
-Negative. It's a small web app built on top of a real trained machine
-learning model — every prediction you see comes from that model, not
-from a guess or a random result.
+**Live site:** https://sentiment-analysis-nu-cyan.vercel.app/
+**Source code:** https://github.com/parekhmeet033/Sentiment_analysis
 
-## What it does
+ReviewLens is a movie review sentiment analyzer. You give it a review —
+your own words, not a pre-written example — and it tells you whether
+the review reads as Positive or Negative, along with how confident it
+is in that call. Every result comes from a real trained machine
+learning model running on the server; nothing on the results screen is
+mocked, randomized, or hardcoded.
 
-- You type or paste a movie review into the browser.
-- The review is sent to a local server running your trained model.
-- The model cleans the text, converts it into numbers, and predicts
-  a sentiment.
-- The result (Positive / Negative + confidence %) is shown instantly.
+## What problem it solves
 
-## How the model works
+Reading sentiment out of free-form text is something people do
+instinctively but computers have to learn. ReviewLens is a working,
+end-to-end example of that: raw English text goes in, a probability
+comes out, and the whole path between those two points — cleaning the
+text, turning it into numbers, and scoring it — is visible and
+explained inside the app itself, not just in this README.
 
-The model follows four steps:
+## How it works
 
-1. **Preprocessing** — the review is lowercased, HTML tags are removed,
-   and anything that isn't a letter or a space is stripped out.
-2. **TF-IDF** — the cleaned text is turned into numbers. Common words
-   ("the", "was", "it") get a low score. Rare, distinctive words
-   ("boring", "brilliant") get a higher score.
-3. **Logistic Regression** — a model trained on 50,000 IMDB reviews
-   uses those scores to calculate how likely the review is to be
-   positive.
-4. **Prediction** — the result is converted into a class (Positive or
-   Negative) along with a confidence percentage.
+The model follows a four-stage pipeline, and the site's **How It
+Works** section lets you step through each stage interactively on
+your own text before running it for real:
 
-This is the same pipeline used to train the model — nothing about it
-changes between training and the live app.
+1. **Preprocessing** — the review is lowercased, HTML tags are
+   stripped, and anything that isn't a letter or a space is removed.
+   This keeps the model from treating "Great!" and "great" as
+   different words.
+2. **TF-IDF Vectorization** — the cleaned text is converted into
+   numbers. Words that appear in almost every review ("the", "was",
+   "it") get a low score; rare, opinion-carrying words ("boring",
+   "brilliant") get a higher one. This is what lets a model built on
+   plain word counts pick up on tone at all.
+3. **Logistic Regression** — a model trained on 50,000 labeled IMDB
+   reviews combines those word scores into a single weighted sum, then
+   passes it through a sigmoid function to squeeze it into a value
+   between 0 and 1.
+4. **Prediction** — a score above 0.5 is called Positive, below 0.5 is
+   called Negative. How far the score sits from 0.5 becomes the
+   confidence percentage shown in the result.
 
-## Project structure
+## Features
 
-```
-ReviewLens/
-├── README.md
-├── IMDB-Dataset.csv       (training data)
-├── train_model.py         (trains the model)
-├── app.py                 (serves live predictions)
-├── model.pkl              (trained model, created by train_model.py)
-├── vectorizer.pkl         (fitted TF-IDF vectorizer)
-├── requirements.txt
-├── index.html
-├── style.css
-└── script.js
-```
+- **Live Sentiment Analysis** — type or paste any review and get an
+  instant Positive/Negative call with a confidence score, pulled from
+  the real model on every request.
+- **Advanced Glassmorphism UI** — High-refinement liquid glass optics with ambient background mesh gradients, ray-traced specular highlights, and fluid backdrop blur effects (`blur(32px)`).
+- **Interactive How It Works panel** — click through the four pipeline
+  stages and watch your own text get cleaned, tokenized, and scored in
+  real time, with plain-language explanations at each step.
+- **Sample reviews** — three pre-written reviews to try the model on
+  immediately, no typing required.
+- **Model information panel** — dataset, algorithm, feature type, and
+  class labels, all in one place.
+- **No fake results anywhere** — every number on the page is either
+  computed from your input on the spot, or clearly labeled as a
+  simplified explanation rather than the model's actual internals.
 
-## Requirements
+## How it's built
 
-- Python 3.9 or newer
-- pip
+**Frontend:** plain HTML, CSS, and JavaScript with an Advanced Glassmorphism design system — no framework, no build
+step. `script.js` handles the live analysis calls, the interactive
+pipeline walkthrough, and the sample review cards.
 
-## Setup
+**Backend:** a Flask app (`api/index.py`) exposing a `/predict`
+endpoint, deployed as a serverless function on Vercel. It loads the
+already-trained model and vectorizer on startup and serves both the
+static site and the prediction API from a single deployment.
 
-### 1. Install backend dependencies
+**Model:** trained offline with `train_model.py` on the IMDB Reviews
+dataset (50,000 labeled reviews, evenly split between positive and
+negative). Training uses a TF-IDF vectorizer capped at 5,000 features
+and a scikit-learn Logistic Regression classifier, split 80/20 for
+train and test. The trained model reaches roughly 89% accuracy on the
+held-out test set. The fitted model and vectorizer are saved with
+`joblib` (`model.pkl`, `vectorizer.pkl`) and loaded directly by the
+live API — the same objects used during training are what serve every
+request in production, nothing is retrained or approximated at
+request time.
 
-Open a terminal and run:
+## Tech stack
 
-```bash
-pip install -r requirements.txt
-```
-
-### 2. Train the model
-
-This step reads `IMDB-Dataset.csv`, trains the Logistic Regression
-model, and saves it as `model.pkl` and `vectorizer.pkl`. You only
-need to do this once — if those two files already exist, you can
-skip this step.
-
-```bash
-python train_model.py
-```
-
-You should see output like:
-
-```
-Accuracy: 0.8925
-Saved model.pkl and vectorizer.pkl
-```
-
-### 3. Start the backend server
-
-Run:
-
-```bash
-python app.py
-```
-
-This starts a local server at `http://127.0.0.1:5000` with a
-`/predict` endpoint. **Keep this terminal open** — the frontend needs
-it running to get real predictions.
-
-### 4. Open the frontend
-
-Open `index.html` in your browser.
-
-## Using the app
-
-1. Go to the **Live Sentiment Analysis** section.
-2. Type or paste any review, or click one of the **Sample Reviews**.
-3. Click **Analyze Sentiment**.
-4. The result card shows Positive or Negative, with a confidence
-   percentage.
-5. Repeat as many times as you like — there's no limit.
-
-## Troubleshooting
-
-**"Could not reach the model server"**
-The backend (`app.py`) isn't running. Go back to the first terminal
-and make sure it's still active, or restart it with `python app.py`.
-
-**`model.pkl` or `vectorizer.pkl` not found**
-Run `python train_model.py` first — these
-files are created by that script and aren't included until you do.
-
-**Port already in use**
-Something else is already using port 5000. Close that
-program, or change the port number in `app.py`.
-
-## Model details
-
-| | |
+| Layer | Tools |
 |---|---|
-| Dataset | IMDB Reviews (50,000 labeled reviews) |
-| Model | Logistic Regression |
-| Features | TF-IDF (max 5,000 features) |
-| Classes | Positive / Negative |
-| Accuracy | ~89% on held-out test data |
+| Frontend | HTML, CSS, JavaScript |
+| Backend | Flask, Flask-CORS |
+| Model | scikit-learn (TF-IDF + Logistic Regression) |
+| Dataset | IMDB Reviews (50,000 rows) |
+| Hosting | Vercel (serverless Python function) |
