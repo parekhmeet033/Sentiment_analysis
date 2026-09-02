@@ -1,5 +1,9 @@
-// Address of your local Flask backend (see app.py)
-const API_URL = "http://127.0.0.1:5000/predict";
+// Smart API endpoint detection:
+// Uses localhost:5000 if opened directly as file:// or live server, otherwise relative /predict
+const isLocal = window.location.protocol === "file:" ||
+  ((window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port !== "5000");
+
+const API_URL = isLocal ? "http://127.0.0.1:5000/predict" : "/predict";
 
 const reviewInput = document.getElementById("review-input");
 const analyzeBtn = document.getElementById("analyze-btn");
@@ -30,14 +34,15 @@ async function analyzeSentiment() {
     });
 
     if (!response.ok) {
-      throw new Error("The model server returned an error.");
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || `Server returned status ${response.status}`);
     }
 
     const data = await response.json();
     showResult(data);
   } catch (err) {
     errorMessage.textContent =
-      "Could not reach the model server. Make sure app.py is running on port 5000.";
+      err.message || "Could not reach the model server.";
     errorMessage.classList.remove("hidden");
     resultCard.classList.add("hidden");
   } finally {
