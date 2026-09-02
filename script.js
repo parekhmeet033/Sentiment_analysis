@@ -33,16 +33,20 @@ async function analyzeSentiment() {
       body: JSON.stringify({ review })
     });
 
+    const data = await response.json().catch(() => ({}));
+
     if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.error || `Server returned status ${response.status}`);
+      throw new Error(data.error || `Server error (Status: ${response.status})`);
     }
 
-    const data = await response.json();
     showResult(data);
   } catch (err) {
-    errorMessage.textContent =
-      err.message || "Could not reach the model server.";
+    if (err.name === "TypeError" && err.message.toLowerCase().includes("fetch")) {
+      errorMessage.textContent =
+        "Could not connect to the API server. If running locally, start app.py (python app.py).";
+    } else {
+      errorMessage.textContent = err.message || "Could not reach the model server.";
+    }
     errorMessage.classList.remove("hidden");
     resultCard.classList.add("hidden");
   } finally {
@@ -57,7 +61,6 @@ function showResult(data) {
   resultLabel.textContent = isPositive ? "✓ Positive" : "✗ Negative";
   resultLabel.className = "result-label " + (isPositive ? "positive" : "negative");
 
-  // Only show confidence if the backend actually provided it
   if (typeof data.confidence === "number") {
     resultConfidence.textContent = `Confidence: ${data.confidence}%`;
   } else {
@@ -69,14 +72,12 @@ function showResult(data) {
 
 analyzeBtn.addEventListener("click", analyzeSentiment);
 
-// Allow Ctrl+Enter / Cmd+Enter to trigger analysis from the textarea
 reviewInput.addEventListener("keydown", (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
     analyzeSentiment();
   }
 });
 
-// Sample review cards load their text into the textarea and analyze it
 document.querySelectorAll(".sample-card").forEach((card) => {
   card.addEventListener("click", () => {
     reviewInput.value = card.dataset.review;
@@ -87,11 +88,6 @@ document.querySelectorAll(".sample-card").forEach((card) => {
 
 /* =====================================================================
    HOW IT WORKS — interactive pipeline inspector
-   Step 1 runs the REAL preprocessing regex your model uses.
-   Steps 2-3 are clearly-labeled conceptual illustrations, since the
-   actual TF-IDF weights and Logistic Regression coefficients only exist
-   inside your trained vectorizer.pkl / model.pkl on the backend.
-   Step 4 hands off to the real model via the Live Analysis section.
    ===================================================================== */
 
 const pipelineNodes = document.querySelectorAll(".pipeline-node");
@@ -102,7 +98,6 @@ const theoryCard = document.getElementById("theory-card");
 
 let currentStep = 1;
 
-// Same cleaning rules as app.py's preprocess_text() — nothing invented
 function realPreprocess(text) {
   let cleaned = text.toLowerCase();
   cleaned = cleaned.replace(/<[^>]+>/g, "");
@@ -110,8 +105,6 @@ function realPreprocess(text) {
   return cleaned.replace(/\s+/g, " ").trim();
 }
 
-// A small reference list used only to illustrate "common vs. distinctive"
-// words for the TF-IDF explainer. This is not your model's vocabulary.
 const COMMON_WORDS = new Set([
   "a","an","the","is","was","were","it","this","that","and","but","of",
   "to","in","on","for","with","i","you","he","she","they","we","be",
@@ -119,7 +112,7 @@ const COMMON_WORDS = new Set([
 ]);
 
 function renderStep() {
-  if (!stepDetail || !xrayContent || !theoryCard) return; // safety guard
+  if (!stepDetail || !xrayContent || !theoryCard) return;
 
   const raw = demoInput ? demoInput.value : "";
   const cleaned = realPreprocess(raw);
