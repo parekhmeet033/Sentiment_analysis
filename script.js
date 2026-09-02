@@ -1,9 +1,4 @@
-// Smart API endpoint detection:
-// Uses localhost:5000 if opened directly as file:// or live server, otherwise relative /predict
-const isLocal = window.location.protocol === "file:" ||
-  ((window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port !== "5000");
-
-const API_URL = isLocal ? "http://127.0.0.1:5000/predict" : "/predict";
+const API_URL = "/predict";
 
 const reviewInput = document.getElementById("review-input");
 const analyzeBtn = document.getElementById("analyze-btn");

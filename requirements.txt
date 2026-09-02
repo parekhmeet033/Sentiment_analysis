@@ -1,5 +1,4 @@
 flask
 flask-cors
 scikit-learn
-pandas
 joblib

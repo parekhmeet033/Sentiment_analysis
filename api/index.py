@@ -5,21 +5,15 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # Ensure CORS headers are added to all responses
+CORS(app)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_PATH = os.path.join(BASE_DIR, "model.pkl")
 VECTORIZER_PATH = os.path.join(BASE_DIR, "vectorizer.pkl")
 
-# Safe loading of model and vectorizer
-try:
-    model = joblib.load(MODEL_PATH)
-    vectorizer = joblib.load(VECTORIZER_PATH)
-    load_error = None
-except Exception as e:
-    model = None
-    vectorizer = None
-    load_error = str(e)
+# Load model and vectorizer
+model = joblib.load(MODEL_PATH)
+vectorizer = joblib.load(VECTORIZER_PATH)
 
 
 def preprocess_text(text):
@@ -31,27 +25,21 @@ def preprocess_text(text):
 
 @app.route("/", methods=["GET"])
 def home():
-    if os.path.exists(os.path.join(BASE_DIR, "index.html")):
-        return send_from_directory(BASE_DIR, "index.html")
-    return jsonify({"status": "API is online", "load_error": load_error})
+    return send_from_directory(BASE_DIR, "index.html")
 
 
-@app.route("/predict", methods=["GET", "POST"])
-@app.route("/api/predict", methods=["GET", "POST"])
-@app.route("/api/index", methods=["GET", "POST"])
+@app.route("/<path:filename>", methods=["GET"])
+def static_files(filename):
+    file_path = os.path.join(BASE_DIR, filename)
+    if os.path.exists(file_path):
+        return send_from_directory(BASE_DIR, filename)
+    return send_from_directory(BASE_DIR, "index.html")
+
+
+@app.route("/predict", methods=["POST"])
+@app.route("/api/predict", methods=["POST"])
 def predict():
-    if request.method == "GET":
-        return jsonify({
-            "status": "API is online",
-            "load_error": load_error,
-            "model_loaded": model is not None,
-            "vectorizer_loaded": vectorizer is not None
-        })
-
-    if load_error or model is None or vectorizer is None:
-        return jsonify({"error": f"Model initialization failed: {load_error}"}), 500
-
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(force=True, silent=True) or {}
     review = data.get("review", "").strip()
 
     if not review:
